@@ -3,7 +3,7 @@ Recherches
 
 ### Modules potentiellement utile
 
-- [SPARQLWrapper]{https://sparqlwrapper.readthedocs.io/en/latest/main.html} Le module permet de faire et de récupérer
+- [SPARQLWrapper](https://sparqlwrapper.readthedocs.io/en/latest/main.html) Le module permet de faire et de récupérer
   des requêtes SPARQL sur une base de donnée.
   ```python
   from SPARQLWrapper import SPARQLWrapper
@@ -19,7 +19,7 @@ Recherches
   
   print(results) # Display results of request
   ```
-- [rdflib]{https://rdflib.readthedocs.io/en/stable/} Module permettant de naviguer parmi des données RDF.
+- [rdflib](https://rdflib.readthedocs.io/en/stable/) Module permettant de naviguer parmi des données RDF.
   ```python
   import rdflib
 
@@ -29,7 +29,7 @@ Recherches
 
   print(g.serialize(format="turtle").decode("utf-8"))  # print out the entire Graph in the RDF Turtle format
   ```
-- [urllib] Module permettant de faire des requêtes HTML.
+- [urllib](https://docs.python.org/fr/3/library/urllib.html) Module permettant de faire des requêtes HTML.
   ```python
   import urllib
 
