@@ -1,4 +1,4 @@
-from SPARQLWrapper import SPARQLWrapper, JSON
+from SPARQLWrapper import SPARQLWrapper
 import rdflib
 
 endpoint: str = "http://kaiko.getalp.org/sparql"
@@ -11,7 +11,7 @@ WHERE {?t rdf:type qb:DataSet .
 
 sparql: SPARQLWrapper = SPARQLWrapper(endpoint)
 sparql.setQuery(statement)  # Link to query
-sparql.setReturnFormat(JSON)  # Set return format of query to JSON
+sparql.setReturnFormat("json")  # Set return format of query to JSON
 
 results: dict = sparql.query().convert()  # Get the result of the query
 
@@ -29,7 +29,8 @@ for item in values:
     # loop through each triple in the graph (subj, pred, obj)
     for subj, pred, obj in g:
         # check if there is at least one triple in the Graph
-        print(subj, pred, obj)
+        pass
+        # print(subj, pred, obj)
 
     # print out the entire Graph in the RDF Turtle format
-    #print(g.serialize(format="turtle").decode("utf-8"))
+    print(g.serialize(format="turtle").decode("utf-8"))
