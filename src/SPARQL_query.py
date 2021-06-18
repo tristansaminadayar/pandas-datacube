@@ -1,7 +1,9 @@
 import time as tm
+from typing import NoReturn
+
 import pandas as pd
 from SPARQLWrapper import SPARQLWrapper
-from typing import NoReturn
+from ipywidgets import widgets
 
 
 class SPARQLquery:
@@ -12,7 +14,8 @@ class SPARQLquery:
      - Ability to retrieve the response in `pandas` data frame format
     """
 
-    def __init__(self, endpoint: str, query: str, verbose: bool = False, step: int = 5000) -> NoReturn:
+    def __init__(self, endpoint: str, query: str, verbose: bool = False, step: int = 1000,
+                 widget: widgets.IntProgress = None) -> NoReturn:
         """
 
 
@@ -28,13 +31,21 @@ class SPARQLquery:
         self.verbose: bool = verbose
         self.step: int = step
         self.resultSize: int = self.get_result_size()
+        self.is_widget: bool = False
+
+        if widget:
+            self.widget = widget
+            self.widget.max = self.resultSize
+            self.widget.value = 0
+            self.is_widget = True
 
     def get_result_size(self) -> int:
         """
         Function return the size of a query (only in SELECT query)
         """
 
-        if self.query.strip().startswith("SELECT"):  # Modifie the query to count the number of answer
+        if self.query.strip().startswith("SELECT") or self.query.strip().startswith(
+                "select"):  # Modifie the query to count the number of answer
 
             if self.verbose:
                 print(tm.strftime(f"[%H:%M:%S] Obtention du nombre de résultats avant exécuter la requête"))
@@ -43,12 +54,12 @@ class SPARQLquery:
             while self.query[start] != '?':
                 start += 1
             end: int = start
-            while self.query[end] != ' ' and self.query[end] != '\n':
+            while self.query[end:end + 5] != "WHERE" and self.query[end:end + 5] != "where":
                 end += 1
 
-            mot: str = self.query[start: end]  # THe name of the variable
+            mot: str = self.query[start: end - 1]  # THe name of the variable
 
-            self.sparql.setQuery(self.query.replace(mot, f"(COUNT ({mot}) as ?cnt)", 1))
+            self.sparql.setQuery(self.query.replace(mot, f"(COUNT (*) as ?cnt)", 1))
             processed_results: dict = self.sparql.query().convert()  # Do the query
             number_of_results: int = int(processed_results['results']['bindings'][0]['cnt']['value'])
 
@@ -56,7 +67,7 @@ class SPARQLquery:
                 print(tm.strftime(f"[%H:%M:%S] Il y a  {number_of_results} résultats..."))
 
             return number_of_results
-        return -1
+        return 1
 
     def get_sparql_dataframe(self, query: str, text: str = "") -> pd.DataFrame:
         """
@@ -82,6 +93,12 @@ class SPARQLquery:
 
         out = [[row.get(c, {}).get('value') for c in cols] for row in processed_results['results']['bindings']]
 
+        if self.is_widget:
+            if text == "":
+                self.widget.value = self.widget.max
+            else:
+                self.widget.value = int(text.split(' ')[0])
+
         if self.verbose:
             print(tm.strftime(f" Effectué"))
 
@@ -92,7 +109,6 @@ class SPARQLquery:
         if self.resultSize > self.step:
             query = self.query + f" LIMIT {self.step}"
             return pd.concat(
-                [self.get_sparql_dataframe(query + f" OFFSET {value}", f"{value:6} sur {self.resultSize}") for value in
+                [self.get_sparql_dataframe(query + f" OFFSET {value}", f"{value} sur {self.resultSize}") for value in
                  range(0, self.resultSize, self.step)])
-
         return self.get_sparql_dataframe(self.query)
