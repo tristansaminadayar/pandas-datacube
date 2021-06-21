@@ -1,9 +1,23 @@
+import datetime
 import time as tm
 from typing import NoReturn
 
 import pandas as pd
+from IPython.display import display
 from SPARQLWrapper import SPARQLWrapper
 from ipywidgets import widgets
+
+
+def add_progress_bar(fun: callable):
+    def function_modif(*args, **kwargs):
+        progress_bar = widgets.IntProgress(bar_style='success', description='Loading:')
+        display(progress_bar)
+        kwargs['widget'] = progress_bar
+        ret = fun(*args, **kwargs)
+        progress_bar.close()
+        return ret
+
+    return function_modif
 
 
 class SPARQLquery:
@@ -14,7 +28,7 @@ class SPARQLquery:
      - Ability to retrieve the response in `pandas` data frame format
     """
 
-    def __init__(self, endpoint: str, query: str, verbose: bool = False, step: int = 1000,
+    def __init__(self, endpoint: str, query: str, verbose: bool = False, step: int = 5000,
                  widget: widgets.IntProgress = None) -> NoReturn:
         """
 
@@ -119,6 +133,7 @@ class SPARQLquery:
         return self.get_sparql_dataframe(self.query)
 
 
+@add_progress_bar
 def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgress = None):
     """
     Dbnary specific function;
@@ -145,6 +160,7 @@ def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgre
     return list_datasets
 
 
+@add_progress_bar
 def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress = None) -> pd.DataFrame:
     """
     Dbnary specific function;
@@ -161,6 +177,7 @@ def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress =
     return result['p'].to_frame(name=None).set_axis(["Caractéristiques"], axis=1)
 
 
+@add_progress_bar
 def download_dataset(endpoint: str, dataset_name: str, features_names: list[str],
                      widget: widgets.IntProgress = None) -> pd.DataFrame:
     """
@@ -187,3 +204,9 @@ def download_dataset(endpoint: str, dataset_name: str, features_names: list[str]
 
     # Do the query
     return SPARQLquery(endpoint, query, widget=widget).do_query()
+
+
+def transformation_date(date: int) -> datetime.datetime:
+    if int(date[6:]) == 0:
+        return datetime.datetime(year=int(date[:4]), month=int(date[4:6]), day=int(date[6:]) + 1)
+    return datetime.datetime(year=int(date[:4]), month=int(date[4:6]), day=int(date[6:]))
