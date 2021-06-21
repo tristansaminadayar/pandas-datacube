@@ -41,7 +41,7 @@ class SPARQLquery:
 
     def get_result_size(self) -> int:
         """
-        Function return the size of a query (only in SELECT query)
+        Function return the size of a query (only in SELECT query).
         """
 
         if self.query.strip().startswith("SELECT") or self.query.strip().startswith(
@@ -105,10 +105,85 @@ class SPARQLquery:
         return pd.DataFrame(out, columns=cols)
 
     def do_query(self) -> pd.DataFrame:
+        """
+        Performs the query all at once if the result is not too big or little by little otherwise,
+        if the query is not a selection it will be done all at once.
 
+        :return: The result of the query
+        """
         if self.resultSize > self.step:
             query = self.query + f" LIMIT {self.step}"
             return pd.concat(
                 [self.get_sparql_dataframe(query + f" OFFSET {value}", f"{value} sur {self.resultSize}") for value in
                  range(0, self.resultSize, self.step)])
         return self.get_sparql_dataframe(self.query)
+
+
+def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgress = None):
+    """
+    Dbnary specific function;
+
+    Get all datasets available names on Dbnary and their description.
+
+    :param endpoint: The address of the SPARQL server
+    :param verbose: If the detail text will be displayed
+    :param widget: If the detail widget will be displayed
+    :return: The data frame of all datasets available names and their description
+    """
+
+    query: str = "SELECT ?dataset ?commentaire WHERE {?dataset a qb:DataSet ; rdfs:comment ?commentaire}"
+
+    if verbose:
+        print(tm.strftime(f"[%H:%M:%S] Requête au serveur des différents datasets disponible... "))
+
+    list_datasets: pd.DataFrame = SPARQLquery(endpoint, query, verbose=verbose,
+                                              widget=widget).do_query()  # We recovers all DataSets Structure
+
+    if verbose:
+        print(tm.strftime(f"[%H:%M:%S] Il y a {len(list_datasets)} datasets disponibles"))
+
+    return list_datasets
+
+
+def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress = None) -> pd.DataFrame:
+    """
+    Dbnary specific function;
+
+    Get all features available names on a dataset in Dbnary.
+
+    :param endpoint: The address of the SPARQL server
+    :param dataset_name: The name of the dataset where you want to have its features
+    :param widget: If the detail widget will be displayed
+    :return: The data frame of all datasets features names available
+    """
+    query: str = f"""DESCRIBE ?item WHERE {'{'} ?item qb:dataSet <{dataset_name}> {'}'} LIMIT 1"""
+    result: pd.DataFrame = SPARQLquery(endpoint, query, widget=widget).do_query()
+    return result['p'].to_frame(name=None).set_axis(["Caractéristiques"], axis=1)
+
+
+def download_dataset(endpoint: str, dataset_name: str, features_names: list[str],
+                     widget: widgets.IntProgress = None) -> pd.DataFrame:
+    """
+    Dbnary specific function;
+
+    Download and return all selected features of a dataset
+
+    :param endpoint: The address of the SPARQL server
+    :param dataset_name: The name of the dataset where you want to download its features
+    :param features_names: The names of features to download
+    :param widget: If the detail widget will be displayed
+    :return: The data frame of selected and downloaded characteristics of a dataset
+    """
+
+    # We will build the query
+    query: str = "SELECT "
+    vars_list: list[str] = [item.split('#')[-1] for item in features_names]
+    for item in vars_list:
+        query += f"?{item} "
+    query += f"WHERE {'{'} ?o qb:dataSet <{dataset_name}> . "
+    for uri, name in zip(features_names, vars_list):
+        query += f"?o <{uri}> ?{name} . "
+    query += "} "
+
+    # Do the query
+    return SPARQLquery(endpoint, query, widget=widget).do_query()
