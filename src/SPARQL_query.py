@@ -145,8 +145,12 @@ def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgre
     :param widget: If the detail widget will be displayed
     :return: The data frame of all datasets available names and their description
     """
-
-    query: str = "SELECT ?dataset ?commentaire WHERE {?dataset a qb:DataSet ; rdfs:comment ?commentaire}"
+    """SELECT ?song ?length {
+    ?song a :Song .
+    
+}"""
+    query: str = "SELECT DISTINCT ?dataset ?commentaire WHERE {?dataset a <http://purl.org/linked-data/cube#DataSet> \
+    OPTIONAL {?dataset <http://www.w3.org/2000/01/rdf-schema#comment> ?commentaire}}"
 
     if verbose:
         print(tm.strftime(f"[%H:%M:%S] Requête au serveur des différents datasets disponible... "))
@@ -172,9 +176,12 @@ def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress =
     :param widget: If the detail widget will be displayed
     :return: The data frame of all datasets features names available
     """
-    query: str = f"""DESCRIBE ?item WHERE {'{'} ?item qb:dataSet <{dataset_name}> {'}'} LIMIT 1"""
+    deb: str = "select ?property where { { select ?item where {?item <http://purl.org/linked-data/cube#dataSet> <"
+    fin: str = "> } LIMIT 1 } ?item ?property ?value . filter ( ?property not in ( rdf:type ) ) }"
+    query: str = deb + dataset_name + fin
+
     result: pd.DataFrame = SPARQLquery(endpoint, query, widget=widget).do_query()
-    return result['p'].to_frame(name=None).set_axis(["Caractéristiques"], axis=1)
+    return result
 
 
 @add_progress_bar
@@ -194,13 +201,11 @@ def download_dataset(endpoint: str, dataset_name: str, features_names: list[str]
 
     # We will build the query
     query: str = "SELECT "
-    vars_list: list[str] = [item.split('#')[-1] for item in features_names]
-    for item in vars_list:
-        query += f"?{item} "
-    query += f"WHERE {'{'} ?o qb:dataSet <{dataset_name}> . "
-    for uri, name in zip(features_names, vars_list):
-        query += f"?o <{uri}> ?{name} . "
-    query += "} "
+    vars_list: list[str] = [item.split('#')[-1].split('/')[-1] for item in features_names]
+    query += " ".join([f"?{item}" for item in vars_list])
+    query += f" WHERE {'{'} ?o <http://purl.org/linked-data/cube#dataSet> <{dataset_name}> . "
+    query += " ".join([f"?o <{uri}> ?{name} ." for uri, name in zip(features_names, vars_list)])
+    query += " } "
 
     # Do the query
     return SPARQLquery(endpoint, query, widget=widget).do_query()
