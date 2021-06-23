@@ -8,6 +8,12 @@ from SPARQL_query import SPARQLquery
 
 
 def add_progress_bar(fun: callable):
+    """
+    Function that adds a loading bar to functions that download databases
+
+    :param fun: The name of the function to modify
+    :return: The modified function
+    """
     def function_modif(*args, **kwargs):
         progress_bar = widgets.IntProgress(bar_style='success', description='Loading:')
         display(progress_bar)
@@ -20,11 +26,9 @@ def add_progress_bar(fun: callable):
 
 
 @add_progress_bar
-def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgress = None):
+def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgress = None) -> pd.DataFrame:
     """
-    Dbnary specific function;
-
-    Get all datasets available names on Dbnary and their description.
+    Get all datasets available names on a server and their description.
 
     :param endpoint: The address of the SPARQL server
     :param verbose: If the detail text will be displayed
@@ -53,9 +57,7 @@ def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgre
 @add_progress_bar
 def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress = None) -> pd.DataFrame:
     """
-    Dbnary specific function;
-
-    Get all features available names on a dataset in Dbnary.
+    Get all features available names on a dataset.
 
     :param endpoint: The address of the SPARQL server
     :param dataset_name: The name of the dataset where you want to have its features
@@ -75,8 +77,6 @@ def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress =
 def download_dataset(endpoint: str, dataset_name: str, features_names: list[str],
                      widget: widgets.IntProgress = None) -> pd.DataFrame:
     """
-    Dbnary specific function;
-
     Download and return all selected features of a dataset
 
     :param endpoint: The address of the SPARQL server
