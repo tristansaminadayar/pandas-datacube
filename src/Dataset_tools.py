@@ -7,18 +7,19 @@ from ipywidgets import widgets
 from SPARQL_query import SPARQLquery
 
 
-def add_progress_bar(fun: callable):
+def add_progress_bar(fun: callable) -> callable:
     """
     Function that adds a loading bar to functions that download databases
 
     :param fun: The name of the function to modify
     :return: The modified function
     """
+
     def function_modif(*args, **kwargs):
-        progress_bar = widgets.IntProgress(bar_style='success', description='Loading:')
+        progress_bar: widgets.IntProgress = widgets.IntProgress(bar_style='success', description='Loading:')
         display(progress_bar)
         kwargs['widget'] = progress_bar
-        ret = fun(*args, **kwargs)
+        ret: callable = fun(*args, **kwargs)
         progress_bar.close()
         return ret
 
@@ -35,12 +36,10 @@ def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgre
     :param widget: If the detail widget will be displayed
     :return: The data frame of all datasets available names and their description
     """
-    """SELECT ?song ?length {
-    ?song a :Song .
 
-}"""
-    query: str = "SELECT DISTINCT ?dataset ?commentaire WHERE {?dataset a <http://purl.org/linked-data/cube#DataSet> \
-    OPTIONAL {?dataset <http://www.w3.org/2000/01/rdf-schema#comment> ?commentaire}}"
+    query: str = ("SELECT DISTINCT ?dataset ?commentaire WHERE {?dataset a <http://purl.org/linked-data/cube#DataSet> "
+                  "OPTIONAL {?dataset <http://www.w3.org/2000/01/rdf-schema#comment> ?commentaire}}"
+                  )
 
     if verbose:
         print(tm.strftime(f"[%H:%M:%S] Requête au serveur des différents datasets disponible... "))
@@ -64,10 +63,10 @@ def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress =
     :param widget: If the detail widget will be displayed
     :return: The data frame of all datasets features names available
     """
-    deb: str = "select ?property where { { select ?item where {?item <http://purl.org/linked-data/cube#dataSet> <"
-    fin: str = "> } LIMIT 1 } ?item ?property ?value . filter \
-    ( ?property not in (<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>) ) }"
-    query: str = deb + dataset_name + fin
+    query: str = ("select ?property where { { select ?item where {?item <http://purl.org/linked-data/cube#dataSet> "
+                  f"<{dataset_name}> }} LIMIT 1 }} ?item ?property ?value . filter ( ?property not in "
+                  "(<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>) ) }"
+                  )
 
     result: pd.DataFrame = SPARQLquery(endpoint, query, widget=widget).do_query()
     return result

@@ -35,10 +35,10 @@ class SPARQLquery:
         self.is_widget: bool = False
 
         if widget:
-            self.widget = widget
+            self.widget: widgets.IntProgress = widget
             self.widget.max = self.resultSize
             self.widget.value = 0
-            self.is_widget = True
+            self.is_widget: bool = True
 
     def get_result_size(self) -> int:
         """
@@ -93,16 +93,17 @@ class SPARQLquery:
             warnings.warn(f"Warning: The server has limited the number of rows to {max_size}: result incomplete.")
 
         if 'x-sql-state' in processed_results.info():
-            warnings.warn(f"Warning: The server has limited the time of queries: partial result for a timed out query")
+            warnings.warn("Warning: The server has limited the time of queries: partial result for a timed out query")
 
         processed_results: dict = processed_results.convert()
 
         if self.verbose:
             print(tm.strftime(f"\r[%H:%M:%S] Transmission {text} réussi, conversion en Data Frame..."), end='')
 
-        cols = processed_results['head']['vars']
+        cols: list[str] = processed_results['head']['vars']
 
-        out = [[row.get(c, {}).get('value') for c in cols] for row in processed_results['results']['bindings']]
+        out: list[list[str]] = [[row.get(c, {}).get('value') for c in cols] for row in
+                                processed_results['results']['bindings']]
 
         if self.is_widget:
             if text == "":
@@ -123,7 +124,7 @@ class SPARQLquery:
         :return: The result of the query
         """
         if self.resultSize > self.step:
-            query = self.query + f" LIMIT {self.step}"
+            query: str = self.query + f" LIMIT {self.step}"
             return pd.concat(
                 [self.get_sparql_dataframe(query + f" OFFSET {value}", f"{value} sur {self.resultSize}") for value in
                  range(0, self.resultSize, self.step)])
