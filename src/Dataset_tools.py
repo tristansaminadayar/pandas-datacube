@@ -1,3 +1,4 @@
+import re
 import time as tm
 
 import pandas as pd
@@ -54,10 +55,12 @@ def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgre
 
 
 @add_progress_bar
-def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress = None) -> pd.DataFrame:
+def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress = None,
+                 verbose: bool = False) -> pd.DataFrame:
     """
     Get all features available names on a dataset.
 
+    :param verbose: If the detail text will be displayed
     :param endpoint: The address of the SPARQL server
     :param dataset_name: The name of the dataset where you want to have its features
     :param widget: If the detail widget will be displayed
@@ -68,16 +71,17 @@ def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress =
                   "(<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>) ) }"
                   )
 
-    result: pd.DataFrame = SPARQLquery(endpoint, query, widget=widget).do_query()
+    result: pd.DataFrame = SPARQLquery(endpoint, query, widget=widget, verbose=verbose).do_query()
     return result
 
 
 @add_progress_bar
 def download_dataset(endpoint: str, dataset_name: str, features_names: list[str],
-                     widget: widgets.IntProgress = None) -> pd.DataFrame:
+                     widget: widgets.IntProgress = None, verbose: bool = False) -> pd.DataFrame:
     """
     Download and return all selected features of a dataset
 
+    :param verbose: If the detail text will be displayed
     :param endpoint: The address of the SPARQL server
     :param dataset_name: The name of the dataset where you want to download its features
     :param features_names: The names of features to download
@@ -87,11 +91,10 @@ def download_dataset(endpoint: str, dataset_name: str, features_names: list[str]
 
     # We will build the query
     query: str = "SELECT "
-    vars_list: list[str] = [item.split('#')[-1].split('/')[-1] for item in features_names]
+    vars_list: list[str] = [re.sub('[^A-Za-z0-9]+', '', item.split('#')[-1].split('/')[-1]) for item in features_names]
     query += " ".join([f"?{item}" for item in vars_list])
     query += f" WHERE {'{'} ?o <http://purl.org/linked-data/cube#dataSet> <{dataset_name}> . "
     query += " ".join([f"?o <{uri}> ?{name} ." for uri, name in zip(features_names, vars_list)])
     query += " } "
-
     # Do the query
-    return SPARQLquery(endpoint, query, widget=widget).do_query()
+    return SPARQLquery(endpoint, query, widget=widget, verbose=verbose).do_query()
