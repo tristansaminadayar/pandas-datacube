@@ -80,7 +80,7 @@ def get_features(endpoint: str, dataset_structure: str, widget: widgets.IntProgr
 
 
 @add_progress_bar
-def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], mesures: list[str],
+def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], measures: list[str],
                      widget: widgets.IntProgress = None, verbose: bool = False) -> pd.DataFrame:
     """
     Download and return all selected features of a dataset
@@ -88,7 +88,7 @@ def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], me
     :param verbose: If the detail text will be displayed
     :param endpoint: The address of the SPARQL server
     :param dataset_name: The name of the dataset where you want to download its features
-    :param mesures: The names of mesures to download
+    :param measures: The names of mesures to download
     :param dimensions: The names of dimensions to download
     :param widget: If the detail widget will be displayed
     :return: The data frame of selected and downloaded characteristics of a dataset
@@ -96,16 +96,16 @@ def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], me
 
     # We will build the query
     query: str = "SELECT "
-    mesures_name: list[str] = [re.sub('[^A-Za-z0-9]+', '', item.split('#')[-1].split('/')[-1]) for item in mesures]
+    measures_name: list[str] = [re.sub('[^A-Za-z0-9]+', '', item.split('#')[-1].split('/')[-1]) for item in measures]
     dimensions_name: list[str] = [re.sub('[^A-Za-z0-9]+', '', item.split('#')[-1].split('/')[-1]) for item in
                                   dimensions]
-    vars_list: list[str] = dimensions_name + mesures_name
-    url_list: list[str] = dimensions + mesures
+    vars_list: list[str] = dimensions_name + measures_name
+    url_list: list[str] = dimensions + measures
 
     query += " ".join([f"?{item}" for item in vars_list])
     query += f" WHERE {'{'} ?o <http://purl.org/linked-data/cube#dataSet> <{dataset_name}> . "
     query += " ".join([f"OPTIONAL{{ ?o <{uri}> ?{name} }}" for uri, name in zip(url_list, vars_list)])
     query += " } "
-    # Do the query
 
+    # Do the query
     return SPARQLquery(endpoint, query, widget=widget, verbose=verbose).do_query().set_index(dimensions_name)
