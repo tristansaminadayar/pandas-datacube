@@ -76,7 +76,9 @@ def get_features(endpoint: str, dataset_structure: str, widget: widgets.IntProgr
 
     result: pd.DataFrame = SPARQLquery(endpoint, query, widget=widget, verbose=verbose).do_query()
 
-    return result[result['type'].isin(["http://purl.org/linked-data/cube#dimension", "http://purl.org/linked-data/cube#measure"])]
+    return result[result['type'].isin(["http://purl.org/linked-data/cube#dimension",
+                                       "http://purl.org/linked-data/cube#measure"])].sort_values(
+        by=['type', 'property'])
 
 
 @add_progress_bar
