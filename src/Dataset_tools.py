@@ -1,31 +1,10 @@
 import re
 import time as tm
-from typing import Any, Union
+from typing import Union
 
 import pandas as pd
-from IPython.core.display import display
-from ipywidgets import widgets
 
 from SPARQL_query import SPARQLquery
-
-
-def add_progress_bar(fun: callable) -> callable:
-    """
-    Function that adds a loading bar to functions that download databases
-
-    :param fun: The name of the function to modify
-    :return: The modified function
-    """
-
-    def function_modif(*args, **kwargs) -> Any:
-        progress_bar: widgets.IntProgress = widgets.IntProgress(bar_style='success', description='Loading:')
-        display(progress_bar)
-        kwargs['widget'] = progress_bar
-        ret: Any = fun(*args, **kwargs)
-        progress_bar.close()
-        return ret
-
-    return function_modif
 
 
 def expand_name(word: str, prefixes: dict[str]) -> str:
@@ -58,14 +37,12 @@ def expand_name(word: str, prefixes: dict[str]) -> str:
         raise ValueError(f"There are several ':' in the word expanded {word}")
 
 
-@add_progress_bar
-def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgress = None) -> pd.DataFrame:
+def get_datasets(endpoint: str, verbose: bool = False) -> pd.DataFrame:
     """
     Get all datasets available names on a server and their description.
 
     :param endpoint: The address of the SPARQL server
     :param verbose: If the detail text will be displayed
-    :param widget: If the detail widget will be displayed
     :return: The data frame of all datasets available names and their description
     """
 
@@ -77,8 +54,8 @@ def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgre
     if verbose:
         print(tm.strftime(f"[%H:%M:%S] Requête au serveur des différents datasets disponible... "))
 
-    list_datasets: pd.DataFrame = SPARQLquery(endpoint, query, verbose=verbose,
-                                              widget=widget).do_query()  # We recovers all DataSets Structure
+    list_datasets: pd.DataFrame = SPARQLquery(endpoint, query,
+                                              verbose=verbose).do_query()  # We recovers all DataSets Structure
 
     if verbose:
         print(tm.strftime(f"[%H:%M:%S] Il y a {len(list_datasets)} datasets disponibles"))
@@ -86,16 +63,13 @@ def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgre
     return list_datasets
 
 
-@add_progress_bar
-def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress = None,
-                 verbose: bool = False) -> pd.DataFrame:
+def get_features(endpoint: str, dataset_name: str, verbose: bool = False) -> pd.DataFrame:
     """
     Get all features available names on a dataset.
 
     :param verbose: If the detail text will be displayed
     :param endpoint: The address of the SPARQL server
     :param dataset_name: The URI of the dataset where you want to have its features
-    :param widget: If the detail widget will be displayed
     :return: The data frame of all datasets features names available
     """
 
@@ -103,7 +77,7 @@ def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress =
                   f"<{dataset_name}> <http://purl.org/linked-data/cube#structure> ?structure . ?structure"
                   " <http://purl.org/linked-data/cube#component> ?item}}\n ?item ?type ?property }")
 
-    return SPARQLquery(endpoint, query, widget=widget, verbose=verbose).do_query()
+    return SPARQLquery(endpoint, query, verbose=verbose).do_query()
 
 
 def transform_features(features: pd.DataFrame) -> tuple[list[str], list[str]]:
@@ -147,9 +121,8 @@ def transform_features(features: pd.DataFrame) -> tuple[list[str], list[str]]:
     return dimensions, measures
 
 
-@add_progress_bar
 def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], measures: list[str],
-                     widget: widgets.IntProgress = None, verbose: bool = False) -> pd.DataFrame:
+                     verbose: bool = False) -> pd.DataFrame:
     """
     Download and return all selected features of a dataset
 
@@ -158,7 +131,6 @@ def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], me
     :param dataset_name: The name of the dataset where you want to download its features
     :param measures: The names of mesures to download
     :param dimensions: The names of dimensions to download
-    :param widget: If the detail widget will be displayed
     :return: The data frame of selected and downloaded characteristics of a dataset
     """
 
@@ -176,10 +148,10 @@ def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], me
     query += " } "
 
     # Do the query
-    return SPARQLquery(endpoint, query, widget=widget, verbose=verbose).do_query().set_index(dimensions_name)
+    return SPARQLquery(endpoint, query, verbose=verbose).do_query().set_index(dimensions_name)
 
 
-def from_datacube(sparql_endpoint: str, dataset_name: str = "", dimensions: list[str] = None,
+def from_datacube(sparql_endpoint: str, dataset: str = "", dimensions: list[str] = None,
                   measures: list[str] = None, dtypes: dict[type] = None, prefixes: dict[str] = None) -> pd.DataFrame:
     """
     Function to download a datacube
@@ -187,7 +159,7 @@ def from_datacube(sparql_endpoint: str, dataset_name: str = "", dimensions: list
 
     :param prefixes: The dictionary of the namespace prefixes
     :param sparql_endpoint: The URL of the SPARQL endpoint
-    :param dataset_name: The name of the datacube (default: a random datacube)
+    :param dataset: The name of the datacube (default: a random datacube)
     :param dimensions: The dimensions of the datacube to download (default: all dimensions)
     :param measures: The measures of the datacube to download (default: all measures)
     :param dtypes: The type of measures (default: str)
@@ -196,27 +168,28 @@ def from_datacube(sparql_endpoint: str, dataset_name: str = "", dimensions: list
 
     # The case where prefixes has been given
     if prefixes is not None:
-        dataset_name = expand_name(dataset_name, prefixes)
+        dataset = expand_name(dataset, prefixes)
         measures = [expand_name(measure, prefixes) for measure in measures]
         dimensions = [expand_name(dimension, prefixes) for dimension in dimensions]
+        dtypes = {expand_name(key, prefixes): dtypes[key] for key in dtypes}
 
     # The case where no dataset_name has been given
-    if dataset_name == "":
+    if dataset == "":
         list_datasets: pd.DataFrame = get_datasets(sparql_endpoint)
         if len(list_datasets) == 0:
             raise KeyError(f"No datasets was found in this endpoint ({sparql_endpoint})")
         else:
-            dataset_name = list_datasets['dataset'].values[0]
+            dataset = list_datasets['dataset'].values[0]
 
     # The case where no dimension or/and measures has been given
     if len(measures) == 0 or len(dimensions) == 0:
-        full_dim, full_msr = transform_features(get_features(sparql_endpoint, dataset_name))
+        full_dim, full_msr = transform_features(get_features(sparql_endpoint, dataset))
         if len(dimensions) == 0:
-            dimension = full_dim
+            dimensions = full_dim
         if len(measures) == 0:
             measures = full_dim
 
-    dataframe: pd.DataFrame = download_dataset(sparql_endpoint, dataset_name, dimensions, measures)
+    dataframe: pd.DataFrame = download_dataset(sparql_endpoint, dataset, dimensions, measures)
 
     # The case where types has been given
     for key in dtypes:

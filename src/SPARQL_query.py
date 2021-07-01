@@ -4,7 +4,6 @@ from typing import NoReturn
 
 import pandas as pd
 from SPARQLWrapper import SPARQLWrapper, Wrapper
-from ipywidgets import widgets
 
 
 class SPARQLquery:
@@ -15,8 +14,7 @@ class SPARQLquery:
      - Ability to retrieve the response in `pandas` data frame format
     """
 
-    def __init__(self, endpoint: str, query: str, verbose: bool = False, step: int = 5000,
-                 widget: widgets.IntProgress = None) -> NoReturn:
+    def __init__(self, endpoint: str, query: str, verbose: bool = False, step: int = 5000) -> NoReturn:
         """
 
 
@@ -33,12 +31,6 @@ class SPARQLquery:
         self.step: int = step
         self.resultSize: int = self.get_result_size()
         self.is_widget: bool = False
-
-        if widget:
-            self.widget: widgets.IntProgress = widget
-            self.widget.max = self.resultSize
-            self.widget.value = 0
-            self.is_widget: bool = True
 
     def get_result_size(self) -> int:
         """
@@ -104,12 +96,6 @@ class SPARQLquery:
 
         out: list[list[str]] = [[row.get(c, {}).get('value') for c in cols] for row in
                                 processed_results['results']['bindings']]
-
-        if self.is_widget:
-            if text == "":
-                self.widget.value = self.widget.max
-            else:
-                self.widget.value = int(text.split(' ')[0])
 
         if self.verbose:
             print(tm.strftime(f" Effectué"))
