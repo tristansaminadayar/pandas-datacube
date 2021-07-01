@@ -1,6 +1,6 @@
 import re
 import time as tm
-from typing import Any
+from typing import Any, Tuple, Union
 
 import pandas as pd
 from IPython.core.display import display
@@ -39,9 +39,8 @@ def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgre
     :return: The data frame of all datasets available names and their description
     """
 
-    query: str = ("SELECT DISTINCT ?structure ?dataset ?commentaire WHERE "
-                  "{?dataset a <http://purl.org/linked-data/cube#DataSet> . "
-                  "?dataset <http://purl.org/linked-data/cube#structure> ?structure "
+    query: str = ("SELECT DISTINCT ?dataset ?commentaire WHERE "
+                  "{?dataset a <http://purl.org/linked-data/cube#DataSet> "
                   "OPTIONAL {?dataset <http://www.w3.org/2000/01/rdf-schema#comment> ?commentaire }}"
                   )
 
@@ -58,27 +57,54 @@ def get_datasets(endpoint: str, verbose: bool = False, widget: widgets.IntProgre
 
 
 @add_progress_bar
-def get_features(endpoint: str, dataset_structure: str, widget: widgets.IntProgress = None,
+def get_features(endpoint: str, dataset_name: str, widget: widgets.IntProgress = None,
                  verbose: bool = False) -> pd.DataFrame:
     """
     Get all features available names on a dataset.
 
     :param verbose: If the detail text will be displayed
     :param endpoint: The address of the SPARQL server
-    :param dataset_structure: The URI of the structure of the dataset where you want to have its features
+    :param dataset_name: The URI of the dataset where you want to have its features
     :param widget: If the detail widget will be displayed
     :return: The data frame of all datasets features names available
     """
 
-    query: str = f"""select distinct ?type ?property where {{
-        {{ select ?item where {{ <{dataset_structure}> <http://purl.org/linked-data/cube#component> ?item }} }}
-        ?item ?type ?property }}"""
+    query: str = ("select distinct ?item ?type ?property where {\n{select ?item where { "
+                  f"<{dataset_name}> <http://purl.org/linked-data/cube#structure> ?structure . ?structure"
+                  " <http://purl.org/linked-data/cube#component> ?item}}\n ?item ?type ?property }")
 
-    result: pd.DataFrame = SPARQLquery(endpoint, query, widget=widget, verbose=verbose).do_query()
+    return SPARQLquery(endpoint, query, widget=widget, verbose=verbose).do_query()
 
-    return result[result['type'].isin(["http://purl.org/linked-data/cube#dimension",
-                                       "http://purl.org/linked-data/cube#measure"])].sort_values(
-        by=['type', 'property'])
+
+def transform_features(features: pd.DataFrame) -> Tuple[list[str], list[str]]:
+    unique_features: list[str] = features['item'].unique()
+    order: bool = False
+    if "http://purl.org/linked-data/cube#order" in features['type']:
+        order = True
+
+    dimensions: list[Union[str, Tuple[str, int]]] = []
+    measures: list[str] = []
+
+    for feature in unique_features:
+        data: pd.DataFrame = features[features['item'] == feature]
+        compo: pd.DataFrame = data[data['type'].isin(
+            ['http://purl.org/linked-data/cube#dimension',
+             'http://purl.org/linked-data/cube#measure',
+             'http://purl.org/linked-data/cube#attribute'])]
+        if compo['type'].values[0] == 'http://purl.org/linked-data/cube#measure':
+            measures.append(compo['property'].values[0])
+        elif compo['type'].values[0] == 'http://purl.org/linked-data/cube#dimension':
+            if order:
+                value = int(data[data['type'] == 'http://purl.org/linked-data/cube#order']['property'].values[0])
+                dimensions.append((compo['property'].values[0], value))
+            else:
+                dimensions.append(compo['property'].values[0])
+
+    if order:
+        dimensions.sort(key=lambda x: x[1])
+        dimensions: list[str] = list(map(lambda x: x[0], dimensions, ))
+
+    return dimensions, measures
 
 
 @add_progress_bar
