@@ -1,0 +1,28 @@
+Metadata-Version: 2.1
+Name: pandas-datacube-tristan.saminadayar
+Version: 0.0.1
+Summary: A package allowing to download datacubes into pandas data frames
+Home-page: https://github.com/tristansaminadayar/pandas-datacube
+Author: Tristan Saminadayar
+Author-email: tristan.saminadayar@gmail.com
+License: UNKNOWN
+Project-URL: Bug Tracker, https://github.com/tristansaminadayar/pandas-datacube/issues
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Natural Language :: English
+Classifier: Topic :: Database
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENCE.txt
+
+pandas-datacube
+======
+
+### Requirements:
+ - sparqlwrapper
+ - pandas
+
+

@@ -1,0 +1,29 @@
+Metadata-Version: 2.1
+Name: pandas-datacube
+Version: 1.0
+Summary: Module allowing to obtain datacube in pandas dataframe
+Home-page: UNKNOWN
+Author: Tristan Saminadayar, Gilles Sérasset
+Author-email: tristan.saminadayar@gmail.com, gilles.serasset@imag.fr
+License: CC BY 4.0
+Project-URL: Bug Tracker, https://github.com/pypa/sampleproject/issues
+Keywords: python,sparql,rdf,datacube
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Natural Language :: English
+Classifier: Topic :: Database
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENCE.txt
+
+pandas-datacube
+======
+
+### Requirements:
+ - sparqlwrapper
+ - pandas
+
+

@@ -1,0 +1,8 @@
+LICENCE.txt
+README.md
+pyproject.toml
+setup.cfg
+src/pandas_datacube_tristan.saminadayar.egg-info/PKG-INFO
+src/pandas_datacube_tristan.saminadayar.egg-info/SOURCES.txt
+src/pandas_datacube_tristan.saminadayar.egg-info/dependency_links.txt
+src/pandas_datacube_tristan.saminadayar.egg-info/top_level.txt

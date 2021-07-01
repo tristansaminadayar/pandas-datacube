@@ -1,0 +1,2 @@
+pandas~=1.2.5
+sparqlwrapper~=1.8.5

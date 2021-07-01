@@ -151,8 +151,8 @@ def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], me
     return SPARQLquery(endpoint, query, verbose=verbose).do_query().set_index(dimensions_name)
 
 
-def from_datacube(sparql_endpoint: str, dataset: str = "", dimensions: list[str] = None,
-                  measures: list[str] = None, dtypes: dict[type] = None, prefixes: dict[str] = None) -> pd.DataFrame:
+def get_datacube(sparql_endpoint: str, dataset: str = "", dimensions: list[str] = None,
+                 measures: list[str] = None, dtypes: dict[type] = None, prefixes: dict[str] = None) -> pd.DataFrame:
     """
     Function to download a datacube
 
