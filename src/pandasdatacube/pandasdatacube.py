@@ -122,7 +122,7 @@ def transform_features(features: pd.DataFrame) -> tuple[list[str], list[str]]:
 
 
 def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], measures: list[str],
-                     verbose: bool = False) -> pd.DataFrame:
+                     restrictions: dict[str: list[str]] = None, verbose: bool = False) -> pd.DataFrame:
     """
     Download and return all selected features of a dataset
 
@@ -131,6 +131,7 @@ def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], me
     :param dataset_name: The name of the dataset where you want to download its features
     :param measures: The names of mesures to download
     :param dimensions: The names of dimensions to download
+    :param restrictions: The dictionary containing the values restricted by dimension
     :return: The data frame of selected and downloaded characteristics of a dataset
     """
 
@@ -145,14 +146,33 @@ def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], me
     query += " ".join([f"?{item}" for item in vars_list])
     query += f" WHERE {'{'} ?o <http://purl.org/linked-data/cube#dataSet> <{dataset_name}> . "
     query += " ".join([f"OPTIONAL{{ ?o <{uri}> ?{name} }}" for uri, name in zip(url_list, vars_list)])
+
+    if restrictions is not None:
+        for key in restrictions:
+            if key in dimensions:
+                index_key = dimensions.index(key)
+                var_key = dimensions_name[index_key]
+                query += f"VALUES ?{var_key} {{ "
+                for condition in restrictions[key]:
+                    query += f"\"{condition}\" "
+                query += "} "
+            else:
+                raise KeyError(f"{key} is not in dimensions")
+
     query += " } "
 
     # Do the query
     return SPARQLquery(endpoint, query, verbose=verbose).do_query().set_index(dimensions_name)
 
 
-def get_datacube(sparql_endpoint: str, dataset: str = "", dimensions: list[str] = None,
-                 measures: list[str] = None, dtypes: dict[type] = None, prefixes: dict[str] = None) -> pd.DataFrame:
+def get_datacube(sparql_endpoint: str,
+                 dataset: str = "",
+                 dimensions: list[str] = [],
+                 measures: list[str] = [],
+                 dtypes: dict[str: type] = {},
+                 prefixes: dict[str: str] = {},
+                 restrictions: dict[str: list[str]] = {}
+                 ) -> pd.DataFrame:
     """
     Function to download a datacube
 
@@ -163,15 +183,18 @@ def get_datacube(sparql_endpoint: str, dataset: str = "", dimensions: list[str] 
     :param dimensions: The dimensions of the datacube to download (default: all dimensions)
     :param measures: The measures of the datacube to download (default: all measures)
     :param dtypes: The type of measures (default: str)
+    :param restrictions: The dictionary containing the values restricted by dimension
     :return: A dataframe containing the result, with measures indexed by dimensions
     """
 
     # The case where prefixes has been given
-    if prefixes is not None:
+    if prefixes != {}:
         dataset = expand_name(dataset, prefixes)
         measures = [expand_name(measure, prefixes) for measure in measures]
         dimensions = [expand_name(dimension, prefixes) for dimension in dimensions]
         dtypes = {expand_name(key, prefixes): dtypes[key] for key in dtypes}
+        restrictions = {expand_name(key, prefixes): [expand_name(item, prefixes) for item in restrictions[key]] for key
+                        in restrictions}
 
     # The case where no dataset_name has been given
     if dataset == "":
@@ -187,12 +210,13 @@ def get_datacube(sparql_endpoint: str, dataset: str = "", dimensions: list[str] 
         if len(dimensions) == 0:
             dimensions = full_dim
         if len(measures) == 0:
-            measures = full_dim
+            measures = full_msr
 
-    dataframe: pd.DataFrame = download_dataset(sparql_endpoint, dataset, dimensions, measures)
+    dataframe: pd.DataFrame = download_dataset(sparql_endpoint, dataset, dimensions, measures, restrictions)
 
     # The case where types has been given
-    for key in dtypes:
-        dataframe[key] = dataframe[key].astype(dtypes[key])
+    if dtypes != {}:
+        for key in dtypes:
+            dataframe[key] = dataframe[key].astype(dtypes[key])
 
     return dataframe
