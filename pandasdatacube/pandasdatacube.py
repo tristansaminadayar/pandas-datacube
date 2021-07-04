@@ -4,7 +4,7 @@ from typing import Union
 
 import pandas as pd
 
-from SPARQL_query import SPARQLquery
+from .SPARQL_query import SPARQLquery
 
 
 def expand_name(word: str, prefixes: dict[str]) -> str:
