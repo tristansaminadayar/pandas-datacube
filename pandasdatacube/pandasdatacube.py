@@ -92,7 +92,7 @@ def transform_features(features: pd.DataFrame) -> tuple[list[str], list[str]]:
     unique_features: list[str] = features['item'].unique()  # Get all unique measure/dimension of the dataset
 
     order: bool = False  # Check if the attribut order is filled
-    if "http://purl.org/linked-data/cube#order" in features['type']:
+    if "http://purl.org/linked-data/cube#order" in features['type'].values:
         order = True
 
     dimensions: list[Union[str, tuple[str, int]]] = []
