@@ -91,13 +91,6 @@ class Tests(unittest.TestCase):
 
     def test_download_dataset(self):
 
-        result = (['http://kaiko.getalp.org/dbnary#observationLanguage',
-                   'http://kaiko.getalp.org/dbnary#wiktionaryDumpVersion'],
-                  ['http://kaiko.getalp.org/dbnary#lexicalEntryCount',
-                   'http://kaiko.getalp.org/dbnary#lexicalSenseCount',
-                   'http://kaiko.getalp.org/dbnary#pageCount',
-                   'http://kaiko.getalp.org/dbnary#translationsCount'])
-
         query_result = get_features("http://kaiko.getalp.org/sparql",
                                     'http://kaiko.getalp.org/dbnary/statistics/dbnaryStatisticsCube')
 
@@ -114,13 +107,6 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(query_result.reset_index()['wiktionaryDumpVersion'].unique()), 1)
 
     def test_download_dataset2(self):
-
-        result = (['http://kaiko.getalp.org/dbnary#observationLanguage',
-                   'http://kaiko.getalp.org/dbnary#wiktionaryDumpVersion'],
-                  ['http://kaiko.getalp.org/dbnary#lexicalEntryCount',
-                   'http://kaiko.getalp.org/dbnary#lexicalSenseCount',
-                   'http://kaiko.getalp.org/dbnary#pageCount',
-                   'http://kaiko.getalp.org/dbnary#translationsCount'])
 
         query_result = get_features("http://kaiko.getalp.org/sparql",
                                     'http://kaiko.getalp.org/dbnary/statistics/dbnaryStatisticsCube')
