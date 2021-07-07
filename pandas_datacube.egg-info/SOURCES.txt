@@ -2,8 +2,15 @@ LICENCE.txt
 README.md
 pyproject.toml
 setup.cfg
+setup.py
 pandas_datacube.egg-info/PKG-INFO
 pandas_datacube.egg-info/SOURCES.txt
 pandas_datacube.egg-info/dependency_links.txt
+pandas_datacube.egg-info/not-zip-safe
+pandas_datacube.egg-info/requires.txt
 pandas_datacube.egg-info/top_level.txt
+pandasdatacube/SPARQL_query.py
+pandasdatacube/__init__.py
+pandasdatacube/pandasdatacube.py
+test/__init__.py
 test/test_pandasdatacube.py
