@@ -7,6 +7,3 @@ coverage
 
 # Testing
 pytest
-
-#Deploying
-twine
