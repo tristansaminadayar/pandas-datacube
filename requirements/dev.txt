@@ -1,0 +1,9 @@
+-r prod.txt
+
+pylint
+Radon
+coverage
+
+# Testing
+pytest
+unittest
