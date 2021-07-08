@@ -1,8 +1,12 @@
 -r prod.txt
 
+# Code metrics
 pylint
 Radon
 coverage
 
 # Testing
 pytest
+
+#Deploying
+twine
