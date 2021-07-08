@@ -45,7 +45,7 @@ pipeline {
                     '''
                 echo "Test coverage"
                 sh  ''' source activate ${BUILD_TAG}
-                        coverage run unittest discover
+                        coverage run -m unittest discover
                         python -m coverage xml -o reports/coverage.xml
                     '''
                 echo "Style check"
@@ -81,22 +81,6 @@ pipeline {
                     // Archive unit tests for the future
                     junit (allowEmptyResults: true,
                           testResults: './reports/unit_tests.xml')
-                }
-            }
-        }
-
-        stage('Integration tests') {
-            steps {
-                sh  ''' source activate ${BUILD_TAG}
-                        behave -f=formatters.cucumber_json:PrettyCucumberJSONFormatter -o ./reports/integration.json
-                    '''
-            }
-            post {
-                always {
-                    cucumber (fileIncludePattern: '**/*.json',
-                              jsonReportDirectory: './reports/',
-                              parallelTesting: true,
-                              sortingMethod: 'ALPHABETICAL')
                 }
             }
         }
