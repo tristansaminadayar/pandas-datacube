@@ -1,4 +1,4 @@
-pandas-datacube
+Pandas Datacube
 ======
 
 ## About
