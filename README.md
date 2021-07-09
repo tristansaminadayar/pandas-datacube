@@ -4,7 +4,7 @@ Pandas Datacube
 ## About
 
 **pandas-datacube** is a python package allowing to convert and download a datacube from a remote source using
-SPARQL](https://www.w3.org/TR/sparql11-overview/) queries and to obtain a pandas dataframe
+[SPARQL](https://www.w3.org/TR/sparql11-overview/) queries and to obtain a pandas dataframe
 
 ## Installation
 
