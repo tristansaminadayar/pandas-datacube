@@ -16,5 +16,6 @@ Main Features
   - automatically detects all datasets present in a SPARQL endpoint
   - detects all dimensions and measures of a dataset
   - download a dataset with the chosen characteristics
+  - detects the metadata of a datacube
 """
 

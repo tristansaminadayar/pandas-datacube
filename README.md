@@ -5,7 +5,13 @@ Pandas Datacube
 
 **pandas-datacube** is a python package allowing to convert and download a 
 [datacube](https://www.w3.org/2011/gld/wiki/Data_Cube_Vocabulary) from a remote source using
-[SPARQL](https://www.w3.org/TR/sparql11-overview/) queries and to obtain a pandas dataframe
+[SPARQL](https://www.w3.org/TR/sparql11-overview/) queries and to obtain a pandas dataframe. 
+
+This module is able to detect the different datasets of an entry point and its different dimensions and measures,
+to use the metadata present in the ontology to order the dimensions and to download the data
+
+This project was realized during an internship at [LIG](https://www.liglab.fr/) in the
+[GETALP](http://lig-getalp.imag.fr/fr/accueil/) team under the supervision of Mr Sérasset (Gilles.Serasset@imag.fr)
 
 ## Installation
 
