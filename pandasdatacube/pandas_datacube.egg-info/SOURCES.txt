@@ -1,9 +1,0 @@
-LICENCE.txt
-README.md
-pyproject.toml
-setup.cfg
-pandasdatacube/pandas_datacube.egg-info/PKG-INFO
-pandasdatacube/pandas_datacube.egg-info/SOURCES.txt
-pandasdatacube/pandas_datacube.egg-info/dependency_links.txt
-pandasdatacube/pandas_datacube.egg-info/top_level.txt
-test/test_pandasdatacube.py
