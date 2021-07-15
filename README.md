@@ -3,12 +3,13 @@ Pandas Datacube
 
 ## About
 
-**pandas-datacube** is a python package allowing to convert and download a datacube from a remote source using
+**pandas-datacube** is a python package allowing to convert and download a 
+[datacube](https://www.w3.org/2011/gld/wiki/Data_Cube_Vocabulary) from a remote source using
 [SPARQL](https://www.w3.org/TR/sparql11-overview/) queries and to obtain a pandas dataframe
 
 ## Installation
 
-You can install pandas-datacube from PyPi:
+You can install pandas-datacube from [PyPi](https://pypi.org/project/pandas-datacube):
 
 ```
 $ pip install pandas-datacube
