@@ -1,17 +1,17 @@
 import re
 import time as tm
-from typing import Union
+from typing import Union, Dict, Tuple, List
 
 import pandas as pd
 
 from .SPARQL_query import SPARQLquery
 
 
-def expand_name(word: str, prefixes: dict[str]) -> str:
+def expand_name(word: str, prefixes: Dict[str, str]) -> str:
     """
     Function that transforms the prefix using a dictionary of conversions
 
-    Exemple:
+    Example:
 
     expand_name("dbo:PopulatedPlace/areaTotal", {'dbo': 'https://dbpedia.org/ontology/'})
     > "https://dbpedia.org/ontology/PopulatedPlace/areaTotal"
@@ -52,13 +52,13 @@ def get_datasets(endpoint: str, verbose: bool = False) -> pd.DataFrame:
                   )
 
     if verbose:
-        print(tm.strftime(f"[%H:%M:%S] Requête au serveur des différents datasets disponible... "))
+        print(tm.strftime(f"[%H:%M:%S] Querying all available datasets... "))
 
     list_datasets: pd.DataFrame = SPARQLquery(endpoint, query,
-                                              verbose=verbose).do_query()  # We recovers all DataSets Structure
+                                              verbose=verbose).do_query()  # We recover all DataSets Structure
 
     if verbose:
-        print(tm.strftime(f"[%H:%M:%S] Il y a {len(list_datasets)} datasets disponibles"))
+        print(tm.strftime(f"[%H:%M:%S] {len(list_datasets)} available datasets"))
 
     return list_datasets
 
@@ -80,7 +80,7 @@ def get_features(endpoint: str, dataset_name: str, verbose: bool = False) -> pd.
     return SPARQLquery(endpoint, query, verbose=verbose).do_query()
 
 
-def transform_features(features: pd.DataFrame) -> tuple[list[str], list[str]]:
+def transform_features(features: pd.DataFrame) -> Tuple[List[str], List[str]]:
     """
     Transform the dataframe obtained by `get_features` to a list of all measures and dimensions,
     if the order component is in the cube, the dimensions list will be sorted
@@ -89,14 +89,14 @@ def transform_features(features: pd.DataFrame) -> tuple[list[str], list[str]]:
     :return: The list of all dimensions and the list of all measures
     """
 
-    unique_features: list[str] = features['item'].unique()  # Get all unique measure/dimension of the dataset
+    unique_features: List[str] = features['item'].unique()  # Get all unique measure/dimension of the dataset
 
-    order: bool = False  # Check if the attribut order is filled
+    order: bool = False  # Check if the attribute order is filled
     if "http://purl.org/linked-data/cube#order" in features['type'].values:
         order = True
 
-    dimensions: list[Union[str, tuple[str, int]]] = []
-    measures: list[str] = []
+    dimensions: List[Union[str, Tuple[str, int]]] = []
+    measures: List[str] = []
 
     for feature in unique_features:
         data: pd.DataFrame = features[features['item'] == feature]
@@ -116,13 +116,13 @@ def transform_features(features: pd.DataFrame) -> tuple[list[str], list[str]]:
 
     if order:
         dimensions.sort(key=lambda x: x[1])
-        dimensions: list[str] = list(map(lambda x: x[0], dimensions, ))
+        dimensions: List[str] = list(map(lambda x: x[0], dimensions, ))
 
     return dimensions, measures
 
 
-def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], measures: list[str],
-                     restrictions: dict[str: list[str]] = None, verbose: bool = False) -> pd.DataFrame:
+def download_dataset(endpoint: str, dataset_name: str, dimensions: List[str], measures: List[str],
+                     restrictions: Dict[str, List[str]] = None, verbose: bool = False) -> pd.DataFrame:
     """
     Download and return all selected features of a dataset
 
@@ -137,11 +137,11 @@ def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], me
 
     # We will build the query
     query: str = "SELECT "
-    measures_name: list[str] = [re.sub('[^A-Za-z0-9]+', '', item.split('#')[-1].split('/')[-1]) for item in measures]
-    dimensions_name: list[str] = [re.sub('[^A-Za-z0-9]+', '', item.split('#')[-1].split('/')[-1]) for item in
+    measures_name: List[str] = [re.sub('[^A-Za-z0-9]+', '', item.split('#')[-1].split('/')[-1]) for item in measures]
+    dimensions_name: List[str] = [re.sub('[^A-Za-z0-9]+', '', item.split('#')[-1].split('/')[-1]) for item in
                                   dimensions]
-    vars_list: list[str] = dimensions_name + measures_name
-    url_list: list[str] = dimensions + measures
+    vars_list: List[str] = dimensions_name + measures_name
+    url_list: List[str] = dimensions + measures
 
     query += " ".join([f"?{item}" for item in vars_list])
     query += f" WHERE {'{'} ?o <http://purl.org/linked-data/cube#dataSet> <{dataset_name}> . "
@@ -167,11 +167,11 @@ def download_dataset(endpoint: str, dataset_name: str, dimensions: list[str], me
 
 def get_datacube(sparql_endpoint: str,
                  dataset: str = "",
-                 dimensions: list[str] = [],
-                 measures: list[str] = [],
-                 dtypes: dict[str: type] = {},
-                 prefixes: dict[str: str] = {},
-                 restrictions: dict[str: list[str]] = {}
+                 dimensions=None,
+                 measures=None,
+                 dtypes=None,
+                 prefixes=None,
+                 restrictions=None
                  ) -> pd.DataFrame:
     """
     Function to download a datacube
@@ -188,6 +188,16 @@ def get_datacube(sparql_endpoint: str,
     """
 
     # The case where prefixes has been given
+    if restrictions is None:
+        restrictions = {}
+    if prefixes is None:
+        prefixes = {}
+    if dimensions is None:
+        dimensions = []
+    if measures is None:
+        measures = []
+    if dtypes is None:
+        dtypes = {}
     if prefixes != {}:
         dataset = expand_name(dataset, prefixes)
         measures = [expand_name(measure, prefixes) for measure in measures]

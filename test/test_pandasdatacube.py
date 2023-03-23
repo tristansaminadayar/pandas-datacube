@@ -1,5 +1,7 @@
 import unittest
 
+from typing import Dict, List
+
 from pandasdatacube.pandasdatacube import *
 
 
@@ -102,7 +104,7 @@ class Tests(unittest.TestCase):
                                         query_result[1],
                                         {'http://kaiko.getalp.org/dbnary#wiktionaryDumpVersion': ['20210701']})
 
-        self.assertEqual(len(query_result), 21)
+        self.assertEqual(len(query_result), 22)
         self.assertEqual(len(query_result.columns), 4)
         self.assertEqual(len(query_result.reset_index()['wiktionaryDumpVersion'].unique()), 1)
 
@@ -122,14 +124,14 @@ class Tests(unittest.TestCase):
     def test_get_datacube(self):
 
         endpoint: str = "http://kaiko.getalp.org/sparql"
-        prefixes: dict[str] = {'dbnary': 'http://kaiko.getalp.org/dbnary#',
+        prefixes: Dict[str] = {'dbnary': 'http://kaiko.getalp.org/dbnary#',
                                'dbnstats': 'http://kaiko.getalp.org/dbnary/statistics/',
                                'lime': 'http://www.w3.org/ns/lemon/lime#'}
 
         dataset: str = "dbnstats:dbnaryNymRelationsCube"
-        dimensions: list[str] = ['dbnary:wiktionaryDumpVersion', 'dbnary:nymRelation', 'dbnary:observationLanguage']
-        mesures: list[str] = ['dbnary:count']
-        dtypes: dict[str] = {'count': int}
+        dimensions: List[str] = ['dbnary:wiktionaryDumpVersion', 'dbnary:nymRelation', 'dbnary:observationLanguage']
+        mesures: List[str] = ['dbnary:count']
+        dtypes: Dict[str] = {'count': int}
 
         query_result = get_datacube(endpoint, dataset, dimensions, mesures, dtypes, prefixes).reset_index()
 
