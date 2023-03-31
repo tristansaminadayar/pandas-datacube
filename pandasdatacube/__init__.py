@@ -18,4 +18,3 @@ Main Features
   - download a dataset with the chosen characteristics
   - detects the metadata of a datacube
 """
-

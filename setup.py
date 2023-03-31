@@ -4,7 +4,7 @@ requirements = ['pandas', 'sparqlwrapper']
 
 setup(
     name='pandas-datacube',
-    version='0.0.3',
+    version='0.0.4',
     packages=find_packages(),
     url='https://github.com/tristansaminadayar/pandas-datacube',
     license='MIT',

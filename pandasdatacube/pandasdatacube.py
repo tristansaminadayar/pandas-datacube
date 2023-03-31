@@ -52,7 +52,7 @@ def get_datasets(endpoint: str, verbose: bool = False) -> pd.DataFrame:
                   )
 
     if verbose:
-        print(tm.strftime(f"[%H:%M:%S] Querying all available datasets... "))
+        print(tm.strftime("[%H:%M:%S] Querying all available datasets... "))
 
     list_datasets: pd.DataFrame = SPARQLquery(endpoint, query,
                                               verbose=verbose).do_query()  # We recover all DataSets Structure
